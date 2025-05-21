@@ -2,30 +2,45 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.OrderDto;
 import com.example.demo.service.OrderService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/orders")
+@CrossOrigin(origins = "http://localhost:3000")
 public class OrderController {
 
-    private final OrderService orderService;
-
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
-    }
+    @Autowired
+    private OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<OrderDto> placeOrder(@Valid @RequestBody OrderDto orderDto){
-        OrderDto savedOrder = orderService.placeOrder(orderDto);
-        return new ResponseEntity<>(savedOrder, HttpStatus.CREATED);
+    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
+        return ResponseEntity.ok(orderService.createOrder(orderDto));
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity<OrderDto> getOrder(@PathVariable("id") Long orderId){
-        OrderDto orderDto = orderService.getOrderById(orderId);
-        return ResponseEntity.ok(orderDto);
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderDto> getOrder(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.getOrderById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<OrderDto>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<OrderDto> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok().build();
     }
 }

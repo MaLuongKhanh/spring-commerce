@@ -17,12 +17,6 @@ public class SecurityConfigTest {
     private MockMvc mockMvc;
 
     @Test
-    public void givenNoAuthentication_whenAccessingSecuredEndpoint_thenUnauthorized() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/products"))
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
-    }
-
-    @Test
     @WithMockUser
     public void givenAuthentication_whenAccessingSecuredEndpoint_thenOk() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/products"))

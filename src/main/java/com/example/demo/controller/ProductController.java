@@ -3,8 +3,12 @@ package com.example.demo.controller;
 import com.example.demo.dto.ProductDto;
 import com.example.demo.service.ProductService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
     private final ProductService productService;
 
     public ProductController(ProductService productService) {
@@ -51,21 +55,34 @@ public class ProductController {
 
     @GetMapping("/filter")
     public ResponseEntity<Page<ProductDto>> getProductsByCriteria(
-            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String categoryId,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String color,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
-            Pageable pageable
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection
     ) {
+        logger.info("Filtering products with criteria: name={}, categoryId={}, brand={}, color={}, minPrice={}, maxPrice={}, page={}, size={}, sortBy={}, sortDirection={}",
+                name, categoryId, brand, color, minPrice, maxPrice, page, size, sortBy, sortDirection);
+
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        
         Page<ProductDto> products = productService.getProductsByCriteria(
-                categoryName,
+                name,
+                categoryId,
                 brand,
                 color,
                 minPrice,
                 maxPrice,
                 pageable
         );
+
+        logger.info("Found {} products matching criteria", products.getTotalElements());
         return ResponseEntity.ok(products);
     }
 }

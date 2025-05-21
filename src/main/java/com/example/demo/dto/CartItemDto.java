@@ -21,6 +21,7 @@ public class CartItemDto {
 
     private String productName; // Added for display
     private BigDecimal productPrice; // Added for display
+    private String imageUrl; // Added for display
 
     @NotNull
     @Min(value = 1, message = "Quantity must be at least 1")

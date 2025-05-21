@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.example.demo.config.StringArrayConverter;
 
 import java.math.BigDecimal;
 
@@ -44,4 +45,17 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @NotNull(message = "Product must have a stock")
+    @PositiveOrZero(message = "Stock must be positive or zero")
+    @Column(nullable = false)
+    private int stock;
+
+    @NotNull(message = "Product must have images")
+    @Convert(converter = StringArrayConverter.class)
+    private String[] images;
+
+    @NotNull(message = "Product must have sold")
+    @PositiveOrZero(message = "Sold must be positive or zero")
+    @Column(nullable = false)
+    private int sold;
 }

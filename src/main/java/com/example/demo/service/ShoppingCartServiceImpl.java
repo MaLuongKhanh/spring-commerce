@@ -7,10 +7,13 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.CartItem;
 import com.example.demo.model.Product;
 import com.example.demo.model.ShoppingCart;
+import com.example.demo.model.User;
 import com.example.demo.repository.CartItemRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ShoppingCartRepository;
+import com.example.demo.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,52 +25,50 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final ShoppingCartRepository shoppingCartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
-    public ShoppingCartServiceImpl(ShoppingCartRepository shoppingCartRepository, CartItemRepository cartItemRepository, ProductRepository productRepository) {
+    public ShoppingCartServiceImpl(
+            ShoppingCartRepository shoppingCartRepository,
+            CartItemRepository cartItemRepository,
+            ProductRepository productRepository,
+            UserRepository userRepository) {
         this.shoppingCartRepository = shoppingCartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
-    public ShoppingCartDto getShoppingCart(Long id) {
-        ShoppingCart shoppingCart = shoppingCartRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ShoppingCart", "id", id));
+    @Transactional(readOnly = true)
+    public ShoppingCartDto getShoppingCartByUserId(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        ShoppingCartDto shoppingCartDto = new ShoppingCartDto();
-        shoppingCartDto.setId(shoppingCart.getId());
-        shoppingCartDto.setItems(shoppingCart.getItems().stream()
-                .map(item -> {
-                    CartItemDto cartItemDto = new CartItemDto();
-                    cartItemDto.setId(item.getId());
-                    cartItemDto.setProductId(item.getProduct().getId());
-                    cartItemDto.setProductName(item.getProduct().getName());
-                    cartItemDto.setProductPrice(item.getProduct().getPrice());
-                    cartItemDto.setQuantity(item.getQuantity());
-                    return cartItemDto;
-                })
-                .collect(Collectors.toList()));
+        ShoppingCart shoppingCart = shoppingCartRepository.findByUser(user)
+                .orElseGet(() -> createNewShoppingCart(user));
 
-        return shoppingCartDto;
+        return convertToDto(shoppingCart);
     }
 
     @Override
-    public ShoppingCartDto addItemToCart(Long cartId, AddItemToCartDto addItemToCartDto) {
-        ShoppingCart shoppingCart = shoppingCartRepository.findById(cartId)
-                .orElseThrow(() -> new ResourceNotFoundException("ShoppingCart", "id", cartId));
+    @Transactional
+    public ShoppingCartDto addItemToCart(Long userId, AddItemToCartDto addItemToCartDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        ShoppingCart shoppingCart = shoppingCartRepository.findByUser(user)
+                .orElseGet(() -> createNewShoppingCart(user));
 
         Product product = productRepository.findById(addItemToCartDto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", addItemToCartDto.getProductId()));
 
-        CartItem existingCartItem = cartItemRepository.findByShoppingCartIdAndProductId(cartId, product.getId())
+        CartItem existingCartItem = cartItemRepository.findByShoppingCartIdAndProductId(shoppingCart.getId(), product.getId())
                 .orElse(null);
 
         if (existingCartItem != null) {
-            // Update quantity if item exists
             existingCartItem.setQuantity(existingCartItem.getQuantity() + addItemToCartDto.getQuantity());
             cartItemRepository.save(existingCartItem);
         } else {
-            // Create new CartItem
             CartItem cartItem = new CartItem();
             cartItem.setShoppingCart(shoppingCart);
             cartItem.setProduct(product);
@@ -76,32 +77,72 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             shoppingCart.addItem(cartItem);
         }
 
-        return getShoppingCart(cartId); // Return updated cart
+        return getShoppingCartByUserId(userId);
     }
 
     @Override
-    public ShoppingCartDto removeItemFromCart(Long cartId, Long cartItemId) {
-        ShoppingCart shoppingCart = shoppingCartRepository.findById(cartId)
-                .orElseThrow(() -> new ResourceNotFoundException("ShoppingCart", "id", cartId));
+    @Transactional
+    public ShoppingCartDto removeItemFromCart(Long userId, Long cartItemId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        ShoppingCart shoppingCart = shoppingCartRepository.findByUser(user)
+                .orElseGet(() -> createNewShoppingCart(user));
 
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem", "id", cartItemId));
 
+        if (!cartItem.getShoppingCart().getId().equals(shoppingCart.getId())) {
+            throw new ResourceNotFoundException("CartItem", "id", cartItemId);
+        }
+
         shoppingCart.removeItem(cartItem);
         cartItemRepository.delete(cartItem);
 
-        return getShoppingCart(cartId);
+        return getShoppingCartByUserId(userId);
     }
 
     @Override
-    public ShoppingCartDto clearShoppingCart(Long cartId) {
-        ShoppingCart shoppingCart = shoppingCartRepository.findById(cartId)
-                .orElseThrow(() -> new ResourceNotFoundException("ShoppingCart", "id", cartId));
+    @Transactional
+    public ShoppingCartDto clearShoppingCart(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        ShoppingCart shoppingCart = shoppingCartRepository.findByUser(user)
+                .orElseGet(() -> createNewShoppingCart(user));
 
         List<CartItem> cartItems = shoppingCart.getItems();
         cartItemRepository.deleteAll(cartItems);
-        shoppingCart.getItems().clear(); // Clear the list in the ShoppingCart entity
+        shoppingCart.getItems().clear();
 
-        return getShoppingCart(cartId);
+        return getShoppingCartByUserId(userId);
+    }
+
+    private ShoppingCart createNewShoppingCart(User user) {
+        ShoppingCart newCart = new ShoppingCart();
+        newCart.setUser(user);
+        return shoppingCartRepository.save(newCart);
+    }
+
+    private ShoppingCartDto convertToDto(ShoppingCart shoppingCart) {
+        ShoppingCartDto dto = new ShoppingCartDto();
+        dto.setId(shoppingCart.getId());
+        dto.setUserId(shoppingCart.getUser().getId());
+        dto.setItems(shoppingCart.getItems().stream()
+                .map(item -> {
+                    CartItemDto cartItemDto = new CartItemDto();
+                    cartItemDto.setId(item.getId());
+                    cartItemDto.setProductId(item.getProduct().getId());
+                    cartItemDto.setProductName(item.getProduct().getName());
+                    cartItemDto.setProductPrice(item.getProduct().getPrice());
+                    cartItemDto.setQuantity(item.getQuantity());
+                    // Lấy ảnh đầu tiên từ danh sách ảnh của sản phẩm
+                    if (item.getProduct().getImages() != null && item.getProduct().getImages().length > 0) {
+                        cartItemDto.setImageUrl(item.getProduct().getImages()[0]);
+                    }
+                    return cartItemDto;
+                })
+                .collect(Collectors.toList()));
+        return dto;
     }
 }

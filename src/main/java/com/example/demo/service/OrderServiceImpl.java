@@ -2,100 +2,126 @@ package com.example.demo.service;
 
 import com.example.demo.dto.OrderDto;
 import com.example.demo.dto.OrderItemDto;
-import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Order;
 import com.example.demo.model.OrderItem;
 import com.example.demo.model.Product;
 import com.example.demo.repository.OrderItemRepository;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final ProductRepository productRepository;
+    @Autowired
+    private OrderRepository orderRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository, ProductRepository productRepository) {
-        this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
-        this.productRepository = productRepository;
-    }
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     @Override
-    public OrderDto placeOrder(OrderDto orderDto) {
+    @Transactional
+    public OrderDto createOrder(OrderDto orderDto) {
         Order order = new Order();
         order.setCustomerName(orderDto.getCustomerName());
+        order.setCustomerEmail(orderDto.getCustomerEmail());
+        order.setCustomerPhone(orderDto.getCustomerPhone());
         order.setShippingAddress(orderDto.getShippingAddress());
-        order.setStatus(Order.OrderStatus.valueOf(orderDto.getStatus()));
+        order.setOrderDate(LocalDateTime.now());
+        order.setStatus(Order.OrderStatus.PENDING);
 
-        // Create OrderItems and associate them with the Order
-        orderDto.getOrderItems().forEach(orderItemDto -> {
-            Product product = productRepository.findById(orderItemDto.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product", "id", orderItemDto.getProductId()));
+        List<OrderItem> orderItems = orderDto.getOrderItems().stream()
+                .map(itemDto -> {
+                    Product product = productRepository.findById(itemDto.getProductId())
+                            .orElseThrow(() -> new RuntimeException("Product not found"));
+                    
+                    OrderItem orderItem = new OrderItem();
+                    orderItem.setOrder(order);
+                    orderItem.setProduct(product);
+                    orderItem.setQuantity(itemDto.getQuantity());
+                    orderItem.setPrice(product.getPrice().doubleValue());
+                    return orderItem;
+                })
+                .collect(Collectors.toList());
 
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
-            orderItem.setQuantity(orderItemDto.getQuantity());
-            orderItem.setPrice(product.getPrice()); // Use current price
-            order.addOrderItem(orderItem);
-        });
+        order.setOrderItems(orderItems);
+        order.setTotalAmount(calculateTotalAmount(orderItems));
 
         Order savedOrder = orderRepository.save(order);
-
-        // Convert saved Order to OrderDto
-        OrderDto savedOrderDto = new OrderDto();
-        savedOrderDto.setId(savedOrder.getId());
-        savedOrderDto.setOrderDate(savedOrder.getOrderDate());
-        savedOrderDto.setCustomerName(savedOrder.getCustomerName());
-        savedOrderDto.setShippingAddress(savedOrder.getShippingAddress());
-        savedOrderDto.setStatus(savedOrder.getStatus().toString());
-        savedOrderDto.setOrderItems(savedOrder.getOrderItems().stream()
-                .map(item -> {
-                    OrderItemDto orderItemDto = new OrderItemDto();
-                    orderItemDto.setId(item.getId());
-                    orderItemDto.setProductId(item.getProduct().getId());
-                    orderItemDto.setProductName(item.getProduct().getName());
-                    orderItemDto.setProductPrice(item.getPrice());
-                    orderItemDto.setQuantity(item.getQuantity());
-                    return orderItemDto;
-                })
-                .collect(Collectors.toList()));
-        savedOrderDto.setTotalAmount(savedOrder.getTotalAmount());
-
-        return savedOrderDto;
+        return convertToDto(savedOrder);
     }
 
     @Override
     public OrderDto getOrderById(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", id));
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        return convertToDto(order);
+    }
 
-        OrderDto orderDto = new OrderDto();
-        orderDto.setId(order.getId());
-        orderDto.setOrderDate(order.getOrderDate());
-        orderDto.setCustomerName(order.getCustomerName());
-        orderDto.setShippingAddress(order.getShippingAddress());
-        orderDto.setStatus(order.getStatus().toString());
-        orderDto.setOrderItems(order.getOrderItems().stream()
+    @Override
+    public List<OrderDto> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public OrderDto updateOrderStatus(Long id, String status) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setStatus(Order.OrderStatus.valueOf(status));
+        return convertToDto(orderRepository.save(order));
+    }
+
+    @Override
+    @Transactional
+    public void deleteOrder(Long id) {
+        orderRepository.deleteById(id);
+    }
+
+    private OrderDto convertToDto(Order order) {
+        OrderDto dto = new OrderDto();
+        dto.setId(order.getId());
+        dto.setCustomerName(order.getCustomerName());
+        dto.setCustomerEmail(order.getCustomerEmail());
+        dto.setCustomerPhone(order.getCustomerPhone());
+        dto.setShippingAddress(order.getShippingAddress());
+        dto.setOrderDate(order.getOrderDate());
+        dto.setStatus(order.getStatus());
+        dto.setTotalAmount(order.getTotalAmount());
+
+        List<OrderItemDto> orderItemDtos = order.getOrderItems().stream()
                 .map(item -> {
-                    OrderItemDto orderItemDto = new OrderItemDto();
-                    orderItemDto.setId(item.getId());
-                    orderItemDto.setProductId(item.getProduct().getId());
-                    orderItemDto.setProductName(item.getProduct().getName());
-                    orderItemDto.setProductPrice(item.getPrice());
-                    orderItemDto.setQuantity(item.getQuantity());
-                    return orderItemDto;
+                    OrderItemDto itemDto = new OrderItemDto();
+                    itemDto.setId(item.getId());
+                    itemDto.setProductId(item.getProduct().getId());
+                    itemDto.setProductName(item.getProduct().getName());
+                    itemDto.setQuantity(item.getQuantity());
+                    itemDto.setPrice(item.getPrice());
+                    // Lấy hình ảnh đầu tiên từ mảng images
+                    String[] images = item.getProduct().getImages();
+                    itemDto.setImageUrl(images != null && images.length > 0 ? images[0] : null);
+                    return itemDto;
                 })
-                .collect(Collectors.toList()));
-        orderDto.setTotalAmount(order.getTotalAmount());
+                .collect(Collectors.toList());
 
-        return orderDto;
+        dto.setOrderItems(orderItemDtos);
+        return dto;
+    }
+
+    private Double calculateTotalAmount(List<OrderItem> orderItems) {
+        return orderItems.stream()
+                .mapToDouble(item -> item.getPrice() * item.getQuantity())
+                .sum();
     }
 }

@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 
 @Data
@@ -34,4 +34,13 @@ public class ProductDto {
     @NotNull(message = "Category ID cannot be null")
     private Long categoryId;
 
+    @NotNull(message = "Stock cannot be null")
+    @PositiveOrZero(message = "Stock must be positive or zero")
+    private int stock;
+
+    private MultipartFile[] images;
+    
+    private String[] imageUrls;
+
+    private int sold;
 }

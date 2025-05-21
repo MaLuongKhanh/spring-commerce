@@ -159,7 +159,13 @@ public class ProductServiceImplTest {
         when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(productPage);
 
         Page<ProductDto> resultPage = productService.getProductsByCriteria(
-                "Test Category", "Test Brand", "Test Color", 50.0, 150.0, pageable
+                "Test Product",
+                "1",
+                "Test Brand",
+                "Test Color",
+                50.0,
+                150.0,
+                pageable
         );
 
         assertEquals(1, resultPage.getContent().size());

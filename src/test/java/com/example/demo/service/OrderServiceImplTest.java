@@ -51,24 +51,57 @@ public class OrderServiceImplTest {
 
     @BeforeEach
     public void setup() {
-        product = Product.builder().id(1L).name("Test Product").price(BigDecimal.TEN).build();
-        orderItem = OrderItem.builder().id(1L).product(product).quantity(1).price(BigDecimal.TEN).build();
-        orderItemDto = OrderItemDto.builder().productId(1L).quantity(1).productName("Test Product").productPrice(BigDecimal.TEN).build();
+        product = Product.builder()
+                .id(1L)
+                .name("Test Product")
+                .price(BigDecimal.TEN)
+                .build();
+
+        orderItem = OrderItem.builder()
+                .id(1L)
+                .product(product)
+                .quantity(1)
+                .price(BigDecimal.TEN.doubleValue())
+                .build();
+
+        orderItemDto = OrderItemDto.builder()
+                .productId(1L)
+                .quantity(1)
+                .productName("Test Product")
+                .price(BigDecimal.TEN.doubleValue())
+                .build();
+
         List<OrderItemDto> orderItemDtos = Collections.singletonList(orderItemDto);
 
-        order = Order.builder().id(1L).customerName("Test Customer").shippingAddress("Test Address").status(Order.OrderStatus.PENDING).orderItems(Collections.singletonList(orderItem)).totalAmount(BigDecimal.TEN).orderDate(LocalDateTime.now()).build();
-        orderDto = OrderDto.builder().customerName("Test Customer").shippingAddress("Test Address").status("PENDING").orderItems(orderItemDtos).totalAmount(BigDecimal.TEN).orderDate(LocalDateTime.now()).build();
+        order = Order.builder()
+                .id(1L)
+                .customerName("Test Customer")
+                .shippingAddress("Test Address")
+                .status(Order.OrderStatus.PENDING)
+                .orderItems(Collections.singletonList(orderItem))
+                .totalAmount(BigDecimal.TEN.doubleValue())
+                .orderDate(LocalDateTime.now())
+                .build();
+
+        orderDto = OrderDto.builder()
+                .customerName("Test Customer")
+                .shippingAddress("Test Address")
+                .status(Order.OrderStatus.PENDING)
+                .orderItems(orderItemDtos)
+                .totalAmount(BigDecimal.TEN.doubleValue())
+                .orderDate(LocalDateTime.now())
+                .build();
     }
 
     @Test
-    public void givenOrderDto_whenPlaceOrder_thenReturnOrderDto() {
+    public void givenOrderDto_whenCreateOrder_thenReturnOrderDto() {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(orderRepository.save(any(Order.class))).thenReturn(order);
 
-        OrderDto placedOrderDto = orderService.placeOrder(orderDto);
+        OrderDto createdOrderDto = orderService.createOrder(orderDto);
 
-        assertEquals(1L, placedOrderDto.getId());
-        assertEquals("Test Customer", placedOrderDto.getCustomerName());
+        assertEquals(1L, createdOrderDto.getId());
+        assertEquals("Test Customer", createdOrderDto.getCustomerName());
     }
 
     @Test

@@ -21,6 +21,10 @@ public class ShoppingCart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     // In a real application, this would likely be associated with a User
     // For MVP, we'll keep it simple.
 

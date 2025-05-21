@@ -1,13 +1,11 @@
 package com.example.demo.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.example.demo.model.Order;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,18 +15,12 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderDto {
     private Long id;
-    private LocalDateTime orderDate;
-
-    @NotBlank(message = "Customer name cannot be blank")
     private String customerName;
-
-    @NotBlank(message = "Shipping address cannot be blank")
+    private String customerEmail;
+    private String customerPhone;
     private String shippingAddress;
-
-    @NotNull
-    private String status;
-
+    private LocalDateTime orderDate;
+    private Order.OrderStatus status;
     private List<OrderItemDto> orderItems;
-    private BigDecimal totalAmount;
-
+    private Double totalAmount;
 }

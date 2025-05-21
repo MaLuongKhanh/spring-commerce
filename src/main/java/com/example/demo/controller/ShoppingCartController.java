@@ -18,31 +18,31 @@ public class ShoppingCartController {
         this.shoppingCartService = shoppingCartService;
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity<ShoppingCartDto> getShoppingCart(@PathVariable("id") Long cartId){
-        ShoppingCartDto shoppingCartDto = shoppingCartService.getShoppingCart(cartId);
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<ShoppingCartDto> getShoppingCartByUserId(@PathVariable("userId") Long userId) {
+        ShoppingCartDto shoppingCartDto = shoppingCartService.getShoppingCartByUserId(userId);
         return ResponseEntity.ok(shoppingCartDto);
     }
 
-    @PostMapping("{id}/items")
+    @PostMapping("/user/{userId}/items")
     public ResponseEntity<ShoppingCartDto> addItemToCart(
-            @PathVariable("id") Long cartId,
-            @Valid @RequestBody AddItemToCartDto addItemToCartDto){
-        ShoppingCartDto shoppingCartDto = shoppingCartService.addItemToCart(cartId, addItemToCartDto);
+            @PathVariable("userId") Long userId,
+            @Valid @RequestBody AddItemToCartDto addItemToCartDto) {
+        ShoppingCartDto shoppingCartDto = shoppingCartService.addItemToCart(userId, addItemToCartDto);
         return ResponseEntity.ok(shoppingCartDto);
     }
 
-    @DeleteMapping("{cartId}/items/{itemId}")
+    @DeleteMapping("/user/{userId}/items/{itemId}")
     public ResponseEntity<ShoppingCartDto> removeItemFromCart(
-            @PathVariable("cartId") Long cartId,
+            @PathVariable("userId") Long userId,
             @PathVariable("itemId") Long itemId) {
-        ShoppingCartDto shoppingCartDto = shoppingCartService.removeItemFromCart(cartId, itemId);
+        ShoppingCartDto shoppingCartDto = shoppingCartService.removeItemFromCart(userId, itemId);
         return ResponseEntity.ok(shoppingCartDto);
     }
 
-    @DeleteMapping("{id}/clear")
-    public ResponseEntity<ShoppingCartDto> clearShoppingCart(@PathVariable("id") Long cartId) {
-        ShoppingCartDto shoppingCartDto = shoppingCartService.clearShoppingCart(cartId);
+    @DeleteMapping("/user/{userId}/clear")
+    public ResponseEntity<ShoppingCartDto> clearShoppingCart(@PathVariable("userId") Long userId) {
+        ShoppingCartDto shoppingCartDto = shoppingCartService.clearShoppingCart(userId);
         return ResponseEntity.ok(shoppingCartDto);
     }
 }

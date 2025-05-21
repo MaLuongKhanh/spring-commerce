@@ -11,7 +11,8 @@ public interface ProductService {
     ProductDto updateProduct(Long id, ProductDto productDto);
     void deleteProduct(Long id);
     Page<ProductDto> getProductsByCriteria(
-            String categoryName,
+            String name,
+            String categoryId,
             String brand,
             String color,
             Double minPrice,
