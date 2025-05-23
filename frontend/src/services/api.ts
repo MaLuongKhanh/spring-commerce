@@ -1,4 +1,5 @@
 import axios from 'axios';
+import authService from './auth.service';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -27,13 +28,52 @@ api.interceptors.request.use(
 // Add a response interceptor
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    console.log('Response error:', error.response?.data);
-    if (error.response?.status === 401) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      window.location.href = '/login';
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Nếu lỗi 401 và chưa thử refresh token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Lấy refresh token từ localStorage
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        // Thử refresh token
+        const response = await axios.post(
+          `${API_URL}/auth/refresh-token`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${refreshToken}`,
+            },
+          }
+        );
+
+        const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+        // Lưu token mới
+        localStorage.setItem('accessToken', accessToken);
+        if (newRefreshToken) {
+          localStorage.setItem('refreshToken', newRefreshToken);
+        }
+
+        // Thêm token mới vào header và thử lại request
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Nếu refresh token thất bại, đăng xuất
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
     }
+
+    console.log('Response error:', error.response?.data);
     return Promise.reject(error);
   }
 );

@@ -16,6 +16,12 @@ import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import Orders from './pages/Orders';
 import Profile from './pages/Profile';
+import AdminLayout from './pages/admin/AdminLayout';
+import Dashboard from './components/admin/Dashboard';
+import UserManagement from './components/admin/UserManagement';
+import OrderManagement from './components/admin/OrderManagement';
+import ProductManagement from './components/admin/ProductManagement';
+import PrivateRoute from './components/PrivateRoute';
 
 const App: React.FC = () => {
   const dispatch = useDispatch();
@@ -31,35 +37,51 @@ const App: React.FC = () => {
   }, [dispatch]);
 
   return (
-      <Router>
-        <Routes>
-          {/* Các trang không có header/footer */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+    <Router>
+      <Routes>
+        {/* Các trang không có header/footer */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-          {/* Các trang có header/footer */}
-          <Route
-            path="/*"
-            element={
-              <>
-                <Header />
+        {/* Admin routes */}
+        <Route
+          path="/admin/*"
+          element={
+            <PrivateRoute requireAdmin>
+              <AdminLayout>
                 <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/product/:id" element={<ProductDetail />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/category/:categoryId" element={<CategoryProducts />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/order-success/:orderId" element={<OrderSuccess />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/orders" element={<Orders />} />
-                  {/* Thêm các route khác nếu có */}
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/users" element={<UserManagement />} />
+                  <Route path="/orders" element={<OrderManagement />} />
+                  <Route path="/products" element={<ProductManagement />} />
                 </Routes>
-              </>
-            }
-          />
-        </Routes>
-      </Router>
+              </AdminLayout>
+            </PrivateRoute>
+          }
+        />
+
+        {/* Các trang có header/footer */}
+        <Route
+          path="/*"
+          element={
+            <>
+              <Header />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/category/:categoryId" element={<CategoryProducts />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/order-success/:orderId" element={<OrderSuccess />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/orders" element={<Orders />} />
+              </Routes>
+            </>
+          }
+        />
+      </Routes>
+    </Router>
   );
 };
 

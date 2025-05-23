@@ -17,7 +17,8 @@ import {
     Person as PersonIcon,
     AccountCircle,
     ShoppingBag,
-    Logout
+    Logout,
+    AdminPanelSettings
 } from '@mui/icons-material';
 
 const menuLinks = [
@@ -68,6 +69,11 @@ const Header: React.FC = () => {
 
   const handleOrders = () => {
     navigate('/orders');
+    handleClose();
+  };
+
+  const handleAdmin = () => {
+    navigate('/admin');
     handleClose();
   };
 
@@ -247,6 +253,11 @@ const Header: React.FC = () => {
           <MenuItem onClick={handleOrders}>
             <ShoppingBag sx={{ mr: 1 }} /> Đơn mua
           </MenuItem>
+          {user.role === 'ADMIN' && (
+            <MenuItem onClick={handleAdmin}>
+              <AdminPanelSettings sx={{ mr: 1 }} /> Quản trị
+            </MenuItem>
+          )}
           <Divider />
           <MenuItem onClick={handleLogout}>
             <Logout sx={{ mr: 1 }} /> Đăng xuất

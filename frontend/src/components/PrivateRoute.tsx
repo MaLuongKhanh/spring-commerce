@@ -1,18 +1,23 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import authService from '../services/auth.service';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
+  requireAdmin?: boolean;
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requireAdmin = false }) => {
+  const { user } = useSelector((state: RootState) => state.auth);
   const location = useLocation();
-  const isAuthenticated = authService.isLoggedIn();
 
-  if (!isAuthenticated) {
-    // Chuyển hướng về trang login và lưu lại đường dẫn hiện tại
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requireAdmin && user.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

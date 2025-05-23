@@ -25,21 +25,12 @@ const staticCategories: (Category & { icon: string })[] = [
   { id: 12, name: 'Thời trang nam', icon: '👔', description: '' },
 ];
 
-// Deal hot gán cứng với ảnh đẹp, hợp lệ
-const hotDeals = [
-  { id: 101, name: 'Sữa rửa mặt Senka', price: 69000, image: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=400&q=80' },
-  { id: 102, name: 'Kem chống nắng Anessa', price: 199000, image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80' },
-  { id: 103, name: 'Bàn chải điện Xiaomi', price: 159000, image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80' },
-  { id: 104, name: 'Tai nghe Bluetooth', price: 99000, image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80' },
-  { id: 105, name: 'Áo thun nam', price: 49000, image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=400&q=80' },
-  { id: 106, name: 'Balo thời trang', price: 129000, image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80' },
-];
-
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<(Category & { icon?: string })[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hotDeals, setHotDeals] = useState<Product[]>([]);
 
   useEffect(() => {
     Promise.all([getCategories(), getProducts()]).then(([cats, prods]) => {
@@ -52,7 +43,13 @@ const Home: React.FC = () => {
         setCategories(staticCategories);
       }
 
-      setProducts(Array.isArray((prods as ProductResponse)?.content) ? (prods as ProductResponse).content : []);
+      const productsList = Array.isArray((prods as ProductResponse)?.content) ? (prods as ProductResponse).content : [];
+      setProducts(productsList);
+      
+      // Lấy ngẫu nhiên 6 sản phẩm cho hot deals
+      const shuffled = [...productsList].sort(() => 0.5 - Math.random());
+      setHotDeals(shuffled.slice(0, 6));
+      
       setLoading(false);
     });
   }, []);
@@ -204,19 +201,42 @@ const Home: React.FC = () => {
             <Chip label="SĂN DEAL SIÊU HOT" color="warning" sx={{ fontWeight: 700 }} />
           </Stack>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {hotDeals.map((deal) => (
-              <Box key={deal.id} sx={{ width: { xs: '50%', sm: '25%', md: '16.66%' } }}>
-                <Card sx={{ borderRadius: 2, boxShadow: 1 }}>
-                  <CardMedia
-                    component="img"
-                    height="120"
-                    image={deal.image}
-                    alt={deal.name}
-                  />
-                  <CardContent sx={{ p: 1 }}>
-                    <Typography variant="body2" fontWeight={700} noWrap>{deal.name}</Typography>
-                    <Typography variant="body2" color="error.main" fontWeight={700}>
-                      {deal.price.toLocaleString('vi-VN')}đ
+            {loading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <Box key={i} sx={{ width: { xs: '50%', sm: '25%', md: '16.66%' } }}>
+                    <Skeleton variant="rectangular" width="100%" height={180} />
+                    <Skeleton width="80%" />
+                    <Skeleton width="60%" />
+                  </Box>
+                ))
+              : hotDeals.map((deal) => (
+                  <Box key={deal.id} sx={{ width: { xs: '50%', sm: '25%', md: '16.66%' } }}>
+                    <Card 
+                      sx={{ 
+                        borderRadius: 2, 
+                        boxShadow: 1,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          boxShadow: 3,
+                          transform: 'translateY(-2px)',
+                          transition: 'all 0.2s'
+                        }
+                      }}
+                      onClick={() => handleProductClick(deal.id)}
+                    >
+                      <CardMedia
+                        component="img"
+                        height="120"
+                        image={deal.imageUrls && deal.imageUrls.length > 0 
+                            ? `http://localhost:8080${deal.imageUrls[0]}`
+                            : 'https://via.placeholder.com/120'}
+                        alt={deal.name}
+                        sx={{ objectFit: 'contain' }}
+                      />
+                      <CardContent sx={{ p: 1 }}>
+                        <Typography variant="body2" fontWeight={700} noWrap>{deal.name}</Typography>
+                        <Typography variant="body2" color="error.main" fontWeight={700}>
+                          {deal.price?.toLocaleString('vi-VN') || 0}đ
                         </Typography>
                       </CardContent>
                     </Card>

@@ -78,6 +78,8 @@ public class JwtService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
+        logger.info("Building token with roles: {}", roles);
+
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
@@ -152,17 +154,27 @@ public class JwtService {
 
     public Authentication getAuthentication(String token) {
         Claims claims = extractAllClaims(token);
+        logger.info("Getting authentication from token claims: {}", claims);
         
         Collection<? extends GrantedAuthority> authorities = 
                 Arrays.stream(claims.get("roles", String.class).split(","))
                 .filter(role -> !role.isEmpty())
-                .map(SimpleGrantedAuthority::new)
+                .map(role -> {
+                    logger.info("Processing role from token: {}", role);
+                    // Đảm bảo role có tiền tố ROLE_
+                    String roleName = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                    return new SimpleGrantedAuthority(roleName);
+                })
                 .collect(Collectors.toList());
         
-        return new UsernamePasswordAuthenticationToken(
+        logger.info("Created authorities: {}", authorities);
+        
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
                 claims.getSubject(), 
                 "", 
                 authorities
         );
+        logger.info("Created authentication with authorities: {}", authentication.getAuthorities());
+        return authentication;
     }
 } 

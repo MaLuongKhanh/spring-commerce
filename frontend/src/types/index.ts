@@ -1,9 +1,12 @@
+import { OrderStatus } from './order';
+
 export interface User {
   id: number;
   firstname: string;
   lastname: string;
   email: string;
   role: string;
+  enabled?: boolean;
 }
 
 export interface AuthResponse {
@@ -57,11 +60,12 @@ export interface OrderItem {
 
 export interface Order {
   id: number;
-  user: User;
-  items: CartItem[];
-  total: number;
-  status: string;
-  createdAt: string;
+  customerName: string;
+  customerEmail: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: OrderStatus;
+  orderDate: string;
 }
 
 export interface ProductResponse {
@@ -80,7 +84,7 @@ export interface ProductResponse {
   last: boolean;
   totalElements: number;
   totalPages: number;
-} 
+}
 
 export interface Comment {
   id: number;

@@ -17,6 +17,7 @@ public class UserResponse {
     private String lastname;
     private String email;
     private Role role;
+    private boolean enabled; // Added enabled field
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -25,7 +26,7 @@ public class UserResponse {
             .lastname(user.getLastname())
             .email(user.getEmail())
             .role(user.getRole())
+            .enabled(user.isEnabled())
             .build();
     }
 }
-
