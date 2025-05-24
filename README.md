@@ -213,3 +213,50 @@
 - `/api/admin/**` - Admin only access
 - `/api/user/**` - Authenticated user access
 - `/api/public/**` - Public access
+
+## Testing
+
+### Unit Tests
+```bash
+# Chạy tất cả unit tests
+mvn test
+
+# Chạy test cho một package cụ thể
+mvn test -Dtest=com.commerce.service.*
+
+# Chạy test cho một class cụ thể
+mvn test -Dtest=ProductServiceTest
+```
+
+### Test Cases
+
+#### Authentication Tests
+- Test đăng ký tài khoản mới
+- Test đăng nhập với tài khoản hợp lệ
+- Test đăng nhập với tài khoản không hợp lệ
+- Test refresh token
+- Test xác thực JWT token
+
+#### Product Tests
+- Test lấy danh sách sản phẩm
+- Test tìm kiếm sản phẩm theo tên
+- Test lọc sản phẩm theo danh mục
+- Test thêm/sửa/xóa sản phẩm
+- Test upload ảnh sản phẩm
+
+#### Order Tests
+- Test tạo đơn hàng mới
+- Test cập nhật trạng thái đơn hàng
+- Test hủy đơn hàng
+- Test tính tổng tiền đơn hàng
+- Test kiểm tra tồn kho khi đặt hàng
+
+#### Category Tests
+- Test CRUD danh mục
+- Test lấy sản phẩm theo danh mục
+- Test kiểm tra danh mục có sản phẩm
+
+#### Comment Tests
+- Test thêm bình luận
+- Test lấy bình luận theo sản phẩm
+- Test xóa bình luận

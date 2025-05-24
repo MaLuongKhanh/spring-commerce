@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.OrderDto;
 import com.example.demo.dto.OrderItemDto;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Order;
 import com.example.demo.model.OrderItem;
 import com.example.demo.model.Product;
@@ -42,7 +43,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = orderDto.getOrderItems().stream()
                 .map(itemDto -> {
                     Product product = productRepository.findById(itemDto.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Product not found"));
+                            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", itemDto.getProductId()));
                     
                     OrderItem orderItem = new OrderItem();
                     orderItem.setOrder(order);
@@ -63,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDto getOrderById(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", id));
         return convertToDto(order);
     }
 
@@ -78,7 +79,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDto updateOrderStatus(Long id, String status) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", id));
         order.setStatus(Order.OrderStatus.valueOf(status));
         return convertToDto(orderRepository.save(order));
     }
@@ -86,6 +87,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void deleteOrder(Long id) {
+        if (!orderRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Order", "id", id);
+        }
         orderRepository.deleteById(id);
     }
 
