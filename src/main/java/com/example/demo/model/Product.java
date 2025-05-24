@@ -50,7 +50,6 @@ public class Product {
     @Column(nullable = false)
     private int stock;
 
-    @NotNull(message = "Product must have images")
     @Convert(converter = StringArrayConverter.class)
     private String[] images;
 

@@ -12,52 +12,82 @@ import {
   Alert,
   Divider,
   Stack,
-  Container,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import GoogleIcon from '@mui/icons-material/Google';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
-// Màu xanh dương chủ đạo
-const BLUE = '#1976d2';
+// Tạo theme mới với font chữ hiện đại
+const theme = createTheme({
+  typography: {
+    fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 600,
+      color: '#1a237e',
+    },
+    button: {
+      textTransform: 'none',
+      fontWeight: 500,
+    },
+  },
+  palette: {
+    primary: {
+      main: '#1a237e',
+    },
+  },
+});
 
-const LeftBox = styled(Box)(({ theme }) => ({
-  background: `linear-gradient(120deg, ${BLUE} 80%, #42a5f5 100%)`,
-  color: '#fff',
+const BackgroundImage = styled(Box)(({ theme }) => ({
+  backgroundImage: 'url(https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80)',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
   height: '100vh',
   display: 'flex',
-  flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  minWidth: 0,
   position: 'relative',
-  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
   [theme.breakpoints.down('md')]: {
     display: 'none',
   },
 }));
 
-const BgImage = styled('img')({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-  opacity: 0.18,
-  zIndex: 1,
-});
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    '&:hover fieldset': {
+      borderColor: theme.palette.primary.main,
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: '#666',
+    '&.Mui-focused': {
+      color: theme.palette.primary.main,
+    },
+  },
+  '& .MuiInputLabel-shrink': {
+    transform: 'translate(14px, -9px) scale(0.75)',
+    backgroundColor: 'white',
+    padding: '0 4px',
+  },
+}));
 
-const ContentBox = styled(Box)({
-  position: 'relative',
-  zIndex: 2,
-  textAlign: 'center',
-  width: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-});
+const StyledLabel = styled(Typography)(({ theme }) => ({
+  color: '#666',
+  fontSize: '0.875rem',
+  marginBottom: '8px',
+  fontWeight: 500,
+}));
 
 const Login = () => {
   const navigate = useNavigate();
@@ -67,7 +97,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // Lấy đường dẫn trước đó từ state (nếu có)
   const from = (location.state as any)?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,7 +104,6 @@ const Login = () => {
     try {
       const response = await authService.login(email, password);
       dispatch(setUser(response.user));
-      // Chuyển hướng về trang trước đó hoặc trang chủ
       navigate(from, { replace: true });
     } catch (err) {
       setError('Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.');
@@ -83,96 +111,144 @@ const Login = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Bên trái: Logo + Slogan + Background */}
-      <LeftBox flex={{ xs: '0 0 0', md: '1 1 0%' }} display={{ xs: 'none', md: 'flex' }}>
-        <BgImage src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80" alt="bg" />
-        <ContentBox>
-          <ShoppingBagIcon sx={{ fontSize: 120, mb: 2 }} />
-          <Typography variant="h3" fontWeight={700} sx={{ mb: 2, letterSpacing: 1 }}>
-            Spring Commerce
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 400 }}>
-            Nền tảng thương mại điện tử yêu thích ở Việt Nam
-          </Typography>
-        </ContentBox>
-      </LeftBox>
-
-      {/* Bên phải: Form đăng nhập */}
-      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Paper elevation={6} sx={{ p: 4, width: '100%', maxWidth: 400 }}>
-          <Typography component="h1" variant="h5" align="center" sx={{ mb: 3 }}>
-            Đăng nhập
-          </Typography>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Mật khẩu"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2, py: 1.5 }}
+    <ThemeProvider theme={theme}>
+      <Box sx={{ display: 'flex', height: '100vh' }}>
+        <Box sx={{ display: { xs: 'none', sm: 'block' }, width: { sm: '33%', md: '50%' } }}>
+          <BackgroundImage>
+            <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', color: 'white', px: 4 }}>
+              <ShoppingBagIcon sx={{ fontSize: 80, mb: 2 }} />
+              <Typography variant="h3" sx={{ mb: 2, fontWeight: 600 }}>
+                Chào mừng trở lại
+              </Typography>
+              <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                Đăng nhập để tiếp tục mua sắm
+              </Typography>
+            </Box>
+          </BackgroundImage>
+        </Box>
+        <Box sx={{ width: { xs: '100%', sm: '67%', md: '50%' } }}>
+          <Paper elevation={6} square sx={{ height: '100%' }}>
+            <Box
+              sx={{
+                my: 8,
+                mx: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
             >
-              Đăng nhập
-            </Button>
-            <Divider sx={{ my: 2 }}>HOẶC</Divider>
-            <Stack direction="row" spacing={2} justifyContent="center" mb={2}>
-              <Button
-                variant="outlined"
-                startIcon={<FacebookIcon sx={{ color: '#1877f3' }} />}
-                sx={{ textTransform: 'none', bgcolor: '#fff', borderColor: '#eee', color: '#333', minWidth: 120 }}
-              >
-                Facebook
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<GoogleIcon sx={{ color: '#ea4335' }} />}
-                sx={{ textTransform: 'none', bgcolor: '#fff', borderColor: '#eee', color: '#333', minWidth: 120 }}
-              >
-                Google
-              </Button>
-            </Stack>
-            <Typography align="center">
-              Chưa có tài khoản?{' '}
-              <Button
-                variant="text"
-                sx={{ color: BLUE, textTransform: 'none', fontWeight: 700, p: 0, minWidth: 0 }}
-                onClick={() => navigate('/register')}
-              >
-                Đăng ký ngay
-              </Button>
-            </Typography>
-          </Box>
-        </Paper>
+              <Typography component="h1" variant="h4" sx={{ mb: 4 }}>
+                Đăng nhập
+              </Typography>
+              {error && (
+                <Alert severity="error" sx={{ width: '100%', mb: 3, borderRadius: '8px' }}>
+                  {error}
+                </Alert>
+              )}
+              <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+                <Box sx={{ mb: 2 }}>
+                  <StyledLabel>Email</StyledLabel>
+                  <StyledTextField
+                    required
+                    fullWidth
+                    id="email"
+                    name="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Nhập email của bạn"
+                  />
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <StyledLabel>Mật khẩu</StyledLabel>
+                  <StyledTextField
+                    required
+                    fullWidth
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Nhập mật khẩu của bạn"
+                  />
+                </Box>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  sx={{
+                    mt: 4,
+                    mb: 2,
+                    py: 1.5,
+                    borderRadius: '8px',
+                    fontSize: '1.1rem',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    '&:hover': {
+                      boxShadow: '0 6px 8px rgba(0, 0, 0, 0.15)',
+                    },
+                  }}
+                >
+                  Đăng nhập
+                </Button>
+                <Divider sx={{ my: 3 }}>HOẶC</Divider>
+                <Stack direction="row" spacing={2} justifyContent="center" mb={3}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<FacebookIcon sx={{ color: '#1877f3' }} />}
+                    sx={{
+                      textTransform: 'none',
+                      bgcolor: '#fff',
+                      borderColor: '#eee',
+                      color: '#333',
+                      minWidth: 120,
+                      borderRadius: '8px',
+                      '&:hover': {
+                        borderColor: '#1877f3',
+                        backgroundColor: 'rgba(24, 119, 243, 0.04)',
+                      },
+                    }}
+                  >
+                    Facebook
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<GoogleIcon sx={{ color: '#ea4335' }} />}
+                    sx={{
+                      textTransform: 'none',
+                      bgcolor: '#fff',
+                      borderColor: '#eee',
+                      color: '#333',
+                      minWidth: 120,
+                      borderRadius: '8px',
+                      '&:hover': {
+                        borderColor: '#ea4335',
+                        backgroundColor: 'rgba(234, 67, 53, 0.04)',
+                      },
+                    }}
+                  >
+                    Google
+                  </Button>
+                </Stack>
+                <Button
+                  fullWidth
+                  variant="text"
+                  onClick={() => navigate('/register')}
+                  sx={{
+                    color: '#1a237e',
+                    '&:hover': {
+                      backgroundColor: 'rgba(26, 35, 126, 0.04)',
+                    },
+                  }}
+                >
+                  Chưa có tài khoản? Đăng ký ngay
+                </Button>
+              </Box>
+            </Box>
+          </Paper>
+        </Box>
       </Box>
-    </Box>
+    </ThemeProvider>
   );
 };
 

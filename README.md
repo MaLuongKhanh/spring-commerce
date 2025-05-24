@@ -1,198 +1,213 @@
-# SpringCommerce Application
+# Spring Commerce Application
 
-A simple MVP (Minimum Viable Product) online shopping application built with Java Spring Boot.
+## SOLUTION
+- [x] Entity-relationship diagram 
+  - ![Diagram db](src/main/resources/static/images/erd.png)
+- [x] Solution diagram 
+  - ![Diagram db](src/main/resources/static/images/solution-diagram.png)
 
-## Principles, Patterns, and Practices
+## Software Development Principles, Patterns and Practices
 
-*   **RESTful APIs:** The application follows REST principles for designing the web services, providing a standard way to interact with resources (products, categories, orders, etc.).
-*   **Layered Architecture:** The code is structured into distinct layers (Controller, Service, Repository) to promote separation of concerns, maintainability, and testability.
-*   **Dependency Injection (DI):** Spring's DI framework is used to manage dependencies between components, making the code loosely coupled and easier to test.
-*   **DTO Pattern:** Data Transfer Objects (DTOs) are used to transfer data between layers (especially between Controller and Service), preventing the exposure of internal entity structures and providing tailored data views for the API.
-*   **JPA (Java Persistence API):** Used for object-relational mapping (ORM) to interact with the database, simplifying data persistence operations.
-*   **Spring Data JPA:** Simplifies the implementation of JPA-based repositories by providing standard CRUD operations and query generation capabilities.
-*   **Spring Security:** Provides authentication and authorization mechanisms to secure the application's API endpoints using JWT (JSON Web Tokens).
-*   **Validation:** Bean Validation (JSR 380) is used to validate input data in DTOs and entities.
-*   **Exception Handling:** Custom exception classes (e.g., `ResourceNotFoundException`) and global exception handling mechanisms can be implemented to manage errors gracefully.
-*   **Unit Testing:** JUnit and Mockito are used for writing unit tests to ensure the correctness of individual components (services, controllers).
+### SOLID Principles
+- **Single Responsibility Principle (SRP)**: Mỗi class chỉ có một nhiệm vụ duy nhất
+  - Controllers xử lý HTTP requests
+  - Services xử lý business logic
+  - Repositories xử lý data access
+
+- **Open/Closed Principle (OCP)**: Code mở rộng nhưng không sửa đổi
+  - Sử dụng interfaces cho repositories và services
+  - Dễ dàng thêm tính năng mới mà không ảnh hưởng code hiện tại
+
+- **Liskov Substitution Principle (LSP)**: Các class con có thể thay thế class cha
+  - UserDetailsImpl kế thừa từ UserDetails
+  - Các entity kế thừa từ BaseEntity
+
+- **Interface Segregation Principle (ISP)**: Interface nhỏ, tập trung
+  - Mỗi repository interface chỉ định nghĩa các method cần thiết
+  - Service interfaces được chia nhỏ theo chức năng
+
+- **Dependency Inversion Principle (DIP)**: Phụ thuộc vào abstraction
+  - Sử dụng dependency injection của Spring
+  - Các dependency được inject thông qua constructor
+
+### Design Patterns
+- **MVC Pattern**:
+  - Model: Entities, Repositories, Services
+  - View: Frontend React components
+  - Controller: REST Controllers
+
+- **Repository Pattern**:
+  - Tách biệt logic truy cập dữ liệu
+  - JPA Repositories cho database operations
+
+- **Service Layer Pattern**:
+  - Business logic được đóng gói trong services
+  - Transaction management
+  - Data validation
+
+- **DTO Pattern**:
+  - Tách biệt entity và data transfer objects
+  - Mapping giữa entity và DTO
 
 ## Code Structure
 
-The project follows a standard Maven project structure:
-
 ```
-src
-├── main
-│   ├── java
-│   │   └── com
-│   │       └── example
-│   │           └── demo
-│   │               ├── config          # Spring configuration (Security, JWT)
-│   │               ├── controller      # REST API controllers
-│   │               ├── dto             # Data Transfer Objects
-│   │               ├── exception       # Custom exception classes
-│   │               ├── model           # JPA entities and enums
-│   │               ├── repository      # Spring Data JPA repositories
-│   │               ├── service         # Business logic services
-│   │               └── DemoApplication.java # Main application class
-│   └── resources
-│       ├── application.properties # Application configuration
-│       └── init.sql               # Database initialization script (if using Docker)
-└── test
-    └── java
-        └── com
-            └── example
-                └── demo
-                    ├── controller      # Controller tests
-                    └── service         # Service tests
-
-pom.xml         # Maven project configuration
-README.md       # This file
-docker-compose.yml # Docker configuration (if applicable)
-init.sql        # Database initialization script (if applicable)
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── commerce/
+│   │   │           ├── config/         # Configuration classes
+│   │   │           ├── controller/     # REST Controllers
+│   │   │           ├── dto/           # Data Transfer Objects
+│   │   │           ├── entity/        # JPA Entities
+│   │   │           ├── repository/    # JPA Repositories
+│   │   │           ├── service/       # Business Logic
+│   │   │           └── security/      # Security Configuration
+│   │   └── resources/
+│   │       ├── application.yml       # Application Configuration
+│   │       └── static/              # Static Resources
+├── frontend/
+│   ├── src/
+│   │   ├── components/    # React Components
+│   │   ├── pages/        # Page Components
+│   │   ├── services/     # API Services
+│   │   └── types/        # TypeScript Types
+└── pom.xml               # Maven Configuration
 ```
 
-## Running Locally
+## Setup Instructions
 
-1.  **Prerequisites:**
-    *   Java JDK 17 or later
-    *   Maven 3.6 or later
-    *   (Optional) Docker and Docker Compose (if you want to use the provided MSSQL setup)
+1. **Prerequisites**
+   - Java 17
+   - Node.js 16+
+   - Maven
+   - SQL Server
 
-2.  **Configuration:**
-    *   **Database:** The application is currently configured to use an in-memory H2 database. The connection details are in `src/main/resources/application.properties`.
-    *   **JWT Secret:** Update the `jwt.secret` property in `src/main/resources/application.properties` with a strong, unique secret key.
-
-3.  **Build the Application:**
-    ```bash
+2. **Backend Setup**
+   ```bash
+   # Clone repository
+   git clone https://github.com/MaLuongKhanh/spring-commerce.git
+   
+   # Navigate to project directory
+   cd spring-commerce
+   
+   # Build project
     mvn clean install
-    ```
 
-4.  **Run the Application:**
-    ```bash
+   # Run application
     mvn spring-boot:run
     ```
-    Alternatively, you can run the packaged JAR file:
+
+3. **Frontend Setup**
     ```bash
-    java -jar target/demo-0.0.1-SNAPSHOT.jar
-    ```
+   # Navigate to frontend directory
+   cd frontend
+   
+   # Install dependencies
+   npm install
+   
+   # Start development server
+   npm start
+   ```
 
-5.  **Access the Application:**
-    *   The application will be running at `http://localhost:8080`.
-    *   The H2 database console (if enabled) is available at `http://localhost:8080/h2-console` (use `jdbc:h2:mem:springcommerce_db` as the JDBC URL, `sa` as username, and leave the password empty).
+4. **Database Setup**
+   - Create SQL Server database named 'commerce'
+   - Update database credentials in `application.yml`
+   - Run database migrations
 
-## API Verification (CURL Examples)
+## API Documentation
 
-**Note:** You need a JWT token for authenticated endpoints. Obtain one using the `/api/auth/authenticate` endpoint after registering a user.
+### Authentication APIs
 
-**1. Register a new user:**
+| URL                          | METHOD | IMAGE                                                                     | DESCRIPTION                     |
+| ---------------------------- | :----: | ------------------------------------------------------------------------- | ------------------------------- |
+| `/api/auth/authenticate`     |  POST  | ![image](src/main/resources/static/images/api_result/api.auth.login.png)            | Login user                      |
+| `/api/auth/register`        |  POST  | ![image](src/main/resources/static/images/api_result/api.auth.register.png)        | Register new user               |
+| `/api/auth/refresh-token`   |  POST  | ![image](src/main/resources/static/images/api_result/api.auth.refresh.png)         | Refresh access token            |
 
-```bash
-curl -X POST http://localhost:8080/api/auth/register \
--H "Content-Type: application/json" \
--d '{
-  "firstname": "John",
-  "lastname": "Doe",
-  "email": "john.doe@example.com",
-  "password": "password123"
-}'
-```
+### Product APIs
 
-**2. Authenticate and get JWT token:**
+| URL                          | METHOD | IMAGE                                                                           | DESCRIPTION                              |
+| ---------------------------- | :----: | ------------------------------------------------------------------------------- | ---------------------------------------- |
+| `/api/products`              |  GET   | ![image](src/main/resources/static/images/api_result/api.products.get.png)                 | Get all products                         |
+| `/api/products/filter`       |  GET   | ![image](src/main/resources/static/images/api_result/api.products.filter.png)             | Filter products by criteria              |
+| `/api/products`              |  POST  | ![image](src/main/resources/static/images/api_result/api.products.post.png)                | Create a new product                     |
+| `/api/products/id`           |  GET   | ![image](src/main/resources/static/images/api_result/api.products.id.get.png)              | Get product by ID                        |
+| `/api/products/id`           |  PUT   | ![image](src/main/resources/static/images/api_result/api.products.id.put.png)              | Update product by ID                     |
+| `/api/products/id`           | DELETE | ![image](src/main/resources/static/images/api_result/api.products.id.delete.png)           | Delete product by ID                     |
 
-```bash
-curl -X POST http://localhost:8080/api/auth/authenticate \
--H "Content-Type: application/json" \
--d '{
-  "email": "john.doe@example.com",
-  "password": "password123"
-}'
-```
-*   This will return a JSON response like `{"token":"your_jwt_token"}`. Copy the token.
+### Order APIs
 
-**3. Get all products (requires authentication):**
-   Replace `YOUR_JWT_TOKEN` with the actual token obtained in the previous step.
+| URL                       | METHOD | IMAGE                                                                     | DESCRIPTION                     |
+| ------------------------- | :----: | ------------------------------------------------------------------------- | ------------------------------- |
+| `/api/orders`             |  GET   | ![image](src/main/resources/static/images/api_result/api.orders.get.png)             | Get all orders                  |
+| `/api/orders`             |  POST  | ![image](src/main/resources/static/images/api_result/api.orders.post.png)            | Create a new order              |
+| `/api/orders/id`          |  GET   | ![image](src/main/resources/static/images/api_result/api.orders.id.get.png)          | Get order by ID                 |
+| `/api/orders/id/status`          |  PUT   | ![image](src/main/resources/static/images/api_result/api.orders.id.put.png)          | Update order status by ID              |
+| `/api/orders/id`          | DELETE | ![image](src/main/resources/static/images/api_result/api.orders.id.delete.png)       | Delete order by ID              |
 
-```bash
-curl -X GET http://localhost:8080/api/products \
--H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
+### Category APIs
 
-**4. Get a specific product by ID (requires authentication):**
+| URL                    | METHOD | IMAGE                                                                     | DESCRIPTION                     |
+| ---------------------- | :----: | ------------------------------------------------------------------------- | ------------------------------- |
+| `/api/categories`      |  GET   | ![image](src/main/resources/static/images/api_result/api.categories.get.png)        | Get all categories              |
+| `/api/categories`      |  POST  | ![image](src/main/resources/static/images/api_result/api.categories.post.png)       | Create new category             |
+| `/api/categories/id`   |  GET   | ![image](src/main/resources/static/images/api_result/api.categories.id.get.png)     | Get category by ID              |
+| `/api/categories/id`   |  PUT   | ![image](src/main/resources/static/images/api_result/api.categories.id.put.png)     | Update category by ID           |
+| `/api/categories/id`   | DELETE | ![image](src/main/resources/static/images/api_result/api.categories.id.delete.png)  | Delete category by ID           |
 
-```bash
-curl -X GET http://localhost:8080/api/products/1 \
--H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
+### Comment APIs
 
-**5. Create a new category (requires authentication):**
+| URL                          | METHOD | IMAGE                                                                     | DESCRIPTION                     |
+| ---------------------------- | :----: | ------------------------------------------------------------------------- | ------------------------------- |
+| `/api/comments/product/id`   |  GET   | ![image](src/main/resources/static/images/api_result/api.comments.get.png)          | Get comments for product        |
+| `/api/comments/product/id/user/id` | POST | ![image](src/main/resources/static/images/api_result/api.comments.post.png) | Add comment to product          |
 
-```bash
-curl -X POST http://localhost:8080/api/categories \
--H "Authorization: Bearer YOUR_JWT_TOKEN" \
--H "Content-Type: application/json" \
--d '{
-  "name": "Books"
-}'
-```
+## Screenshots
 
-**6. Create a new product (requires authentication):**
+### Authentication
+- ![](src/main/resources/static/images/web_result/register.png)
+- ![](src/main/resources/static/images/web_result/login.png)
 
-```bash
-curl -X POST http://localhost:8080/api/products \
--H "Authorization: Bearer YOUR_JWT_TOKEN" \
--H "Content-Type: application/json" \
--d '{
-  "name": "Spring in Action",
-  "description": "A comprehensive guide to Spring",
-  "price": 45.99,
-  "brand": "Manning",
-  "color": "N/A",
-  "categoryId": 4 
-}'
-```
-*(Assuming the "Books" category created in the previous step has ID 4)*
+### Product 
+- ![](src/main/resources/static/images/web_result/homepage.png)
+- ![](src/main/resources/static/images/web_result/product-detail.png)
 
-**7. Filter products (requires authentication):**
+### Shopping Cart
+- ![](src/main/resources/static/images/web_result/cart.png)
 
-```bash
-curl -X GET "http://localhost:8080/api/products/filter?categoryName=Electronics&brand=Dell&minPrice=1000" \
--H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
+### Order
+- ![](src/main/resources/static/images/web_result/order.png)
+- ![](src/main/resources/static/images/web_result/order-success.png)
 
-**8. Add item to shopping cart (requires authentication):**
-   *(Assuming a shopping cart with ID 1 exists)*
+### User Management
+- ![](src/main/resources/static/images/web_result/user-management.png)
+- ![](src/main/resources/static/images/web_result/orders-history.png)
 
-```bash
-curl -X POST http://localhost:8080/api/shopping-carts/1/items \
--H "Authorization: Bearer YOUR_JWT_TOKEN" \
--H "Content-Type: application/json" \
--d '{
-  "productId": 1,
-  "quantity": 2
-}'
-```
+### Admin Management
+- ![](src/main/resources/static/images/web_result/admin-dashboard.png)
+- ![](src/main/resources/static/images/web_result/admin_users.png)
+- ![](src/main/resources/static/images/web_result/admin-orders.png)
+- ![](src/main/resources/static/images/web_result/admin-products.png)
 
-**9. Place an order (requires authentication):**
+## Security Implementation
 
-```bash
-curl -X POST http://localhost:8080/api/orders \
--H "Authorization: Bearer YOUR_JWT_TOKEN" \
--H "Content-Type: application/json" \
--d '{
-  "customerName": "Jane Doe",
-  "shippingAddress": "123 Main St, Anytown, USA",
-  "status": "PENDING",
-  "orderItems": [
-    {
-      "productId": 1,
-      "quantity": 1
-    },
-    {
-      "productId": 2,
-      "quantity": 3
-    }
-  ]
-}'
-```
+### Spring Security Configuration
+- JWT based authentication
+- Role-based authorization
+- Password encryption using BCrypt
+- CORS configuration
+- CSRF protection
 
-**Note:** These are basic examples. You can use tools like Postman for a more user-friendly way to interact with the APIs.
+### Security Features
+- User registration and login
+- Role-based access control (ADMIN, USER)
+- JWT token generation and validation
+- Password encryption
+- Session management
+
+### Protected Endpoints
+- `/api/admin/**` - Admin only access
+- `/api/user/**` - Authenticated user access
+- `/api/public/**` - Public access

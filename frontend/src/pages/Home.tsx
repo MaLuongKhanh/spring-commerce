@@ -210,7 +210,7 @@ const Home: React.FC = () => {
                   </Box>
                 ))
               : hotDeals.map((deal) => (
-                  <Box key={deal.id} sx={{ width: { xs: '50%', sm: '25%', md: '16.66%' } }}>
+              <Box key={deal.id} sx={{ width: { xs: '50%', sm: '25%', md: '16.66%' } }}>
                     <Card 
                       sx={{ 
                         borderRadius: 2, 
@@ -224,18 +224,18 @@ const Home: React.FC = () => {
                       }}
                       onClick={() => handleProductClick(deal.id)}
                     >
-                      <CardMedia
-                        component="img"
-                        height="120"
+                  <CardMedia
+                    component="img"
+                    height="120"
                         image={deal.imageUrls && deal.imageUrls.length > 0 
                             ? `http://localhost:8080${deal.imageUrls[0]}`
                             : 'https://via.placeholder.com/120'}
-                        alt={deal.name}
+                    alt={deal.name}
                         sx={{ objectFit: 'contain' }}
-                      />
-                      <CardContent sx={{ p: 1 }}>
-                        <Typography variant="body2" fontWeight={700} noWrap>{deal.name}</Typography>
-                        <Typography variant="body2" color="error.main" fontWeight={700}>
+                  />
+                  <CardContent sx={{ p: 1 }}>
+                    <Typography variant="body2" fontWeight={700} noWrap>{deal.name}</Typography>
+                    <Typography variant="body2" color="error.main" fontWeight={700}>
                           {deal.price?.toLocaleString('vi-VN') || 0}đ
                         </Typography>
                       </CardContent>
