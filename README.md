@@ -1,5 +1,7 @@
 # Spring Commerce Application
 
+## Video demo: https://youtu.be/oakFCsTXXmY
+
 ## SOLUTION
 - [x] Entity-relationship diagram 
   - ![Diagram db](src/main/resources/static/images/erd.png)
